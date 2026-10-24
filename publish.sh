@@ -10,6 +10,8 @@
 #   ./publish.sh 1.0.1 MonOrganisation
 #   GHCR_TOKEN=ghp_xxx ./publish.sh 1.0.0      # sans question pour le jeton
 #   SKIP_BUILD=1 ./publish.sh 1.0.0            # pousse une image deja construite
+#   DOCKERHUB_USER=nibienvenu ./publish.sh 1.0.0   # publie AUSSI sur Docker Hub
+#     (jeton Docker Hub demande, ou DOCKERHUB_TOKEN=dckr_pat_xxx)
 #
 # Le jeton GitHub doit avoir le droit "write:packages".
 # =============================================================================
@@ -106,6 +108,25 @@ info "Envoi vers ghcr.io"
 docker push "${IMAGE}:${VERSION}"
 docker push "${IMAGE}:latest"
 
+# --------------------------------------------------------------- 4. Docker Hub (optionnel)
+if [ -n "${DOCKERHUB_USER:-}" ]; then
+  HUB_USER="$(printf '%s' "$DOCKERHUB_USER" | tr '[:upper:]' '[:lower:]')"
+  HUB_IMAGE="docker.io/${HUB_USER}/${IMAGE_NAME}"
+  info "Connexion a Docker Hub (utilisateur ${HUB_USER})"
+  if [ -z "${DOCKERHUB_TOKEN:-}" ]; then
+    read -r -s -p "Jeton Docker Hub (dckr_pat_..., Read & Write) : " DOCKERHUB_TOKEN
+    echo
+  fi
+  printf '%s' "$DOCKERHUB_TOKEN" | docker login docker.io -u "$HUB_USER" --password-stdin >/dev/null \
+    || die "Connexion Docker Hub refusee : verifiez l'utilisateur et le jeton"
+  unset DOCKERHUB_TOKEN
+  for tag in "$VERSION" latest; do
+    docker tag "${IMAGE}:${tag}" "${HUB_IMAGE}:${tag}"
+    docker push "${HUB_IMAGE}:${tag}"
+  done
+  ok "Publie aussi sur Docker Hub : ${HUB_USER}/${IMAGE_NAME}:${VERSION} et :latest"
+fi
+
 SIZE="$(docker image inspect "${IMAGE}:${VERSION}" --format '{{.Size}}' | awk '{printf "%.0f Mo", $1/1024/1024}')"
 
 echo
@@ -117,5 +138,5 @@ Etapes suivantes :
      https://github.com/${OWNER_INPUT}?tab=packages  >  ${IMAGE_NAME}  >  Package settings  >  Change visibility
   2. Sur le serveur :
      docker pull ${IMAGE}:${VERSION}
-     (dans .env : GHCR_OWNER=${OWNER}  KMP_RTC_TAG=${VERSION})
+     (dans .env : KMP_RTC_IMAGE=${IMAGE}  KMP_RTC_TAG=${VERSION})
 EOF

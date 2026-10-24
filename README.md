@@ -18,8 +18,14 @@ Une seule image Docker pour les **appels audio, appels vidéo, conférences et e
 ## 1. Récupérer l'image
 
 ```bash
+# GitHub Container Registry
 docker pull ghcr.io/nibienvenu/kmp-rtc-server:latest
+# ou Docker Hub
+docker pull nibienvenu/kmp-rtc-server:latest
 ```
+
+Pour utiliser l'image Docker Hub avec Compose, mettez dans `.env` :
+`KMP_RTC_IMAGE=nibienvenu/kmp-rtc-server`
 
 > Si l'image est privée, connectez-vous d'abord avec un jeton GitHub *classic* qui a le droit `read:packages` :
 > `echo "ghp_VOTRE_JETON" | docker login ghcr.io -u VOTRE_UTILISATEUR --password-stdin`

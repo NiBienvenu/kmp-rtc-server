@@ -63,7 +63,7 @@ docker pull ghcr.io/<organisation>/kmp-rtc-server:latest
 
 Image privée : faites `docker login ghcr.io` avant (jeton avec `read:packages`).
 
-Dans `.env` : `GHCR_OWNER=<organisation>` et `KMP_RTC_TAG=1.0.0` (conseillé en production : une version fixe plutôt que `latest`).
+Dans `.env` : `KMP_RTC_IMAGE=ghcr.io/<organisation>/kmp-rtc-server` et `KMP_RTC_TAG=1.0.0` (conseillé en production : une version fixe plutôt que `latest`).
 
 ## Taille de l'image
 

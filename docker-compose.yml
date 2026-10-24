@@ -12,7 +12,7 @@ name: kmp-rtc
 
 services:
   kmp-rtc-server:
-    image: ghcr.io/${GHCR_OWNER:-nibienvenu}/kmp-rtc-server:${KMP_RTC_TAG:-latest}
+    image: ${KMP_RTC_IMAGE:-ghcr.io/nibienvenu/kmp-rtc-server}:${KMP_RTC_TAG:-latest}
     # Pour construire localement au lieu de tirer l'image: docker compose build
     build:
       context: .

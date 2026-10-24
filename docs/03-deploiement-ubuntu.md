@@ -114,7 +114,7 @@ docker pull ghcr.io/<organisation>/kmp-rtc-server:latest
 ## 7. Configurer `.env`
 
 ```dotenv
-GHCR_OWNER=<organisation>
+KMP_RTC_IMAGE=ghcr.io/<organisation>/kmp-rtc-server
 PUBLIC_HOSTNAME=rtc.example.com
 EXTERNAL_IP=203.0.113.10
 SIP_TRANSPORT=udp
