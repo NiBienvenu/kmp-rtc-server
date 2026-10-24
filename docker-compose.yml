@@ -1,0 +1,79 @@
+# =============================================================================
+# kmp-rtc-server: deploiement Docker Compose
+#
+#   cp .env.example .env      # puis remplir PUBLIC_HOSTNAME, EXTERNAL_IP, ...
+#   docker compose up -d
+#   docker compose logs -f
+#
+# Linux en production: preferer le reseau "host" (meilleur pour RTP, pas de NAT Docker):
+#   docker compose -f docker-compose.yml -f docker-compose.host.yml up -d
+# =============================================================================
+name: kmp-rtc
+
+services:
+  kmp-rtc-server:
+    image: ghcr.io/${GHCR_OWNER:-nibienvenu}/kmp-rtc-server:${KMP_RTC_TAG:-latest}
+    # Pour construire localement au lieu de tirer l'image: docker compose build
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kmp-rtc-server
+    hostname: kmp-rtc
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      # HTTP / HTTPS (API REST, WebSocket, docs, admin, SIP WebSocket)
+      - "${HTTP_PUBLISH_PORT:-80}:80/tcp"
+      - "${HTTPS_PUBLISH_PORT:-443}:443/tcp"
+      # SIP
+      - "${SIP_PORT:-5060}:${SIP_PORT:-5060}/udp"
+      - "${SIP_PORT:-5060}:${SIP_PORT:-5060}/tcp"
+      - "${SIP_TLS_PORT:-5061}:${SIP_TLS_PORT:-5061}/tcp"
+      # STUN / TURN
+      - "${TURN_PORT:-3478}:${TURN_PORT:-3478}/udp"
+      - "${TURN_PORT:-3478}:${TURN_PORT:-3478}/tcp"
+      # RTP / SRTP (meme plage des deux cotes: obligatoire)
+      - "${RTP_START:-10000}-${RTP_END:-20000}:${RTP_START:-10000}-${RTP_END:-20000}/udp"
+      # Relais TURN
+      - "${TURN_MIN_PORT:-49160}-${TURN_MAX_PORT:-49200}:${TURN_MIN_PORT:-49160}-${TURN_MAX_PORT:-49200}/udp"
+    volumes:
+      # MariaDB (CDR, utilisateurs, salles...)
+      - mariadb-data:/var/lib/mysql
+      # Secrets generes, certificats auto-signes, comptes SIP generes par Ktor
+      - kmp-data:/var/lib/kmp-rtc
+      # Enregistrements audio/video des appels et conferences (A SAUVEGARDER)
+      - recordings:/var/spool/kmp-rtc/recordings
+      # Asterisk: spool interne
+      - asterisk-spool:/var/spool/asterisk
+      # Asterisk: journaux (messages.log, security.log)
+      - asterisk-logs:/var/log/asterisk
+      # Journaux Nginx / Supervisor
+      - kmp-logs:/var/log/kmp-rtc
+      # Vos fichiers: certificats TLS, surcharges Asterisk
+      - ./config:/etc/kmp-rtc:ro
+      # Webroot Let's Encrypt (certbot --webroot)
+      - ./certbot-www:/var/www/certbot
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    stop_grace_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+    # Limites de ressources (ajuster selon le VPS)
+    deploy:
+      resources:
+        limits:
+          memory: ${KMP_MEMORY_LIMIT:-2g}
+
+volumes:
+  recordings:
+  mariadb-data:
+  kmp-data:
+  asterisk-spool:
+  asterisk-logs:
+  kmp-logs:

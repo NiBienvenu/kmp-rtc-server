@@ -1,0 +1,40 @@
+# kmp-rtc-server: reglages MariaDB (faible memoire par defaut, ajustables par variables d'env)
+[mysqld]
+user                    = mysql
+datadir                 = /var/lib/mysql
+socket                  = /run/mysqld/mysqld.sock
+pid-file                = /run/mysqld/mysqld.pid
+bind-address            = ${MARIADB_BIND_ADDRESS}
+port                    = ${DB_PORT}
+skip-name-resolve
+character-set-server    = utf8mb4
+collation-server        = utf8mb4_unicode_ci
+default-time-zone       = '+00:00'
+
+# Memoire
+innodb_buffer_pool_size = ${MARIADB_INNODB_BUFFER_POOL}
+innodb_log_file_size    = 64M
+max_connections         = ${MARIADB_MAX_CONNECTIONS}
+performance_schema      = OFF
+table_open_cache        = 400
+thread_cache_size       = 16
+tmp_table_size          = 16M
+max_heap_table_size     = 16M
+
+# Durabilite / performance (CDR = beaucoup d'ecritures courtes)
+innodb_flush_log_at_trx_commit = 2
+innodb_flush_method     = O_DIRECT
+sync_binlog             = 0
+
+# Securite
+local-infile            = 0
+symbolic-links          = 0
+
+# Journaux
+slow_query_log          = 1
+slow_query_log_file     = /var/log/kmp-rtc/mysql/mariadb-slow.log
+long_query_time         = 2
+
+[client]
+socket                  = /run/mysqld/mysqld.sock
+default-character-set   = utf8mb4

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kmp-rtc Admin</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--fg:#1d2433;--muted:#5b6478;--line:#e3e7ef;--accent:#2457d6;--ok:#13804a;--bad:#c0392b}
+@media (prefers-color-scheme:dark){:root{--bg:#0f131a;--card:#171c26;--fg:#e6e9f0;--muted:#9aa3b5;--line:#2a3140;--accent:#7aa2ff;--ok:#4cc38a;--bad:#ff7a6b}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--card)}
+header b{font-size:17px}header a{margin-left:auto;color:var(--accent)}
+main{max-width:1100px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+h2{margin:0 0 12px;font-size:16px}
+input,button,select{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+button{background:var(--accent);color:#fff;border:none;cursor:pointer}button.ghost{background:none;color:var(--accent);border:1px solid var(--line)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{border:1px solid var(--line);border-radius:8px;padding:10px}.stat span{display:block;color:var(--muted);font-size:13px}.stat b{font-size:22px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+.scroll{overflow:auto}pre{white-space:pre-wrap;font-size:13px;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--line);max-height:320px;overflow:auto}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.muted{color:var(--muted)}.hidden{display:none}
+</style>
+</head>
+<body>
+<header><b>kmp-rtc-server</b><span class="muted">Administration</span><a href="/docs/">Documentation</a></header>
+<main>
+  <section class="card" id="health"><h2>Etat</h2><div id="healthBody" class="muted">Chargement...</div></section>
+
+  <section class="card" id="login">
+    <h2>Connexion administrateur</h2>
+    <form class="row" id="loginForm">
+      <input id="email" type="email" placeholder="admin@example.com" required autocomplete="username">
+      <input id="password" type="password" placeholder="Mot de passe" required autocomplete="current-password">
+      <button>Se connecter</button><span id="loginMsg" class="bad"></span>
+    </form>
+  </section>
+
+  <div id="app" class="hidden">
+    <section class="card">
+      <div class="row"><h2 style="margin:0">Statistiques (30 jours)</h2><button class="ghost" id="logout" style="margin-left:auto">Deconnexion</button></div>
+      <div class="grid" id="stats" style="margin-top:12px"></div>
+    </section>
+    <section class="card">
+      <h2>Salles de conference</h2>
+      <form class="row" id="roomForm">
+        <input id="roomName" placeholder="Nom de la salle" required>
+        <input id="roomPin" placeholder="PIN (optionnel)" inputmode="numeric" pattern="\d*">
+        <input id="roomMax" type="number" min="2" max="200" value="20" style="width:90px">
+        <button>Creer</button>
+      </form>
+      <div class="scroll"><table id="rooms"></table></div>
+    </section>
+    <section class="card">
+      <h2>Derniers appels (CDR)</h2>
+      <div class="scroll"><table id="cdr"></table></div>
+    </section>
+    <section class="card">
+      <h2>Asterisk en direct</h2>
+      <div class="row">
+        <select id="what"><option>contacts</option><option>endpoints</option><option>channels</option><option>conferences</option><option>uptime</option></select>
+        <button class="ghost" id="runCli">Afficher</button>
+      </div>
+      <pre id="cliOut"></pre>
+    </section>
+    <section class="card">
+      <h2>Utilisateurs</h2>
+      <div class="scroll"><table id="users"></table></div>
+    </section>
+  </div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+let token = null;
+try { token = sessionStorage.getItem("kmpToken"); } catch (e) {}
+
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+async function api(path, opts = {}) {
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers.Authorization = "Bearer " + token;
+  const res = await fetch(path, { ...opts, headers });
+  const body = await res.json().catch(() => ({}));
+  if (res.status === 401) { setToken(null); throw new Error("Session expiree"); }
+  if (!res.ok || body.success === false) throw new Error(body.message || res.statusText);
+  return body.data;
+}
+function setToken(t) {
+  token = t;
+  try { t ? sessionStorage.setItem("kmpToken", t) : sessionStorage.removeItem("kmpToken"); } catch (e) {}
+  $("login").classList.toggle("hidden", !!t);
+  $("app").classList.toggle("hidden", !t);
+  if (t) loadAll();
+}
+function table(el, cols, rows) {
+  el.innerHTML = "<tr>" + cols.map((c) => `<th>${esc(c[0])}</th>`).join("") + "</tr>" +
+    (rows.length ? rows.map((r) => "<tr>" + cols.map((c) => `<td>${c[1](r)}</td>`).join("") + "</tr>").join("")
+                 : `<tr><td colspan="${cols.length}" class="muted">Aucune donnee</td></tr>`);
+}
+
+async function loadHealth() {
+  try {
+    const res = await fetch("/health/ready");
+    const h = await res.json();
+    $("healthBody").innerHTML = Object.entries(h.checks || {}).map(([k, v]) =>
+      `<span class="${v === "ok" ? "ok" : "bad"}">&#9679;</span> ${esc(k)}: ${esc(v)}`).join(" &nbsp; ");
+  } catch (e) { $("healthBody").innerHTML = `<span class="bad">API injoignable</span>`; }
+}
+async function loadAll() {
+  try {
+    const s = await api("/admin/stats?days=30");
+    $("stats").innerHTML = [["Appels", s.totalCalls], ["Repondus", s.answeredCalls], ["Manques", s.missedCalls],
+      ["Minutes", Math.round(s.totalBillsec / 60)], ["Duree moy. (s)", Math.round(s.averageBillsec)]]
+      .map(([k, v]) => `<div class="stat"><span>${k}</span><b>${esc(v)}</b></div>`).join("");
+  } catch (e) { $("stats").textContent = e.message; }
+  try {
+    const rooms = await api("/rooms");
+    table($("rooms"), [["Numero", (r) => esc(r.roomNumber)], ["Nom", (r) => esc(r.name)], ["PIN", (r) => esc(r.pin || "")],
+      ["Max", (r) => esc(r.maxParticipants)], ["SIP", (r) => `<code>${esc(r.sipUri)}</code>`],
+      ["", (r) => `<button class="ghost" data-room="${esc(r.id)}">Fermer</button>`]], rooms);
+  } catch (e) { $("rooms").textContent = e.message; }
+  try {
+    const cdr = await api("/admin/cdr?limit=50");
+    table($("cdr"), [["Date", (r) => esc(r.calldate)], ["De", (r) => esc(r.src)], ["Vers", (r) => esc(r.dst)],
+      ["Duree", (r) => esc(r.billsec + " s")], ["Statut", (r) => esc(r.disposition)]], cdr);
+  } catch (e) { $("cdr").textContent = e.message; }
+  try {
+    const users = await api("/users");
+    table($("users"), [["Nom", (u) => esc(u.displayName)], ["Email", (u) => esc(u.email)], ["Role", (u) => esc(u.role)],
+      ["Statut", (u) => esc(u.status)], ["Vu", (u) => esc(u.lastSeen)]], users);
+  } catch (e) { $("users").textContent = e.message; }
+}
+
+$("loginForm").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  $("loginMsg").textContent = "";
+  try {
+    const d = await api("/auth/login", { method: "POST", body: JSON.stringify({ email: $("email").value, password: $("password").value }) });
+    if (d.user.role !== "admin") throw new Error("Ce compte n'est pas administrateur");
+    setToken(d.token);
+  } catch (e) { $("loginMsg").textContent = e.message; }
+});
+$("logout").addEventListener("click", async () => { try { await api("/auth/logout", { method: "POST" }); } catch (e) {} setToken(null); });
+$("roomForm").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  try {
+    await api("/rooms", { method: "POST", body: JSON.stringify({ name: $("roomName").value, pin: $("roomPin").value || null, maxParticipants: Number($("roomMax").value) }) });
+    ev.target.reset(); loadAll();
+  } catch (e) { alert(e.message); }
+});
+$("rooms").addEventListener("click", async (ev) => {
+  const id = ev.target.dataset.room;
+  if (id && confirm("Fermer cette salle ?")) { try { await api("/rooms/" + id, { method: "DELETE" }); loadAll(); } catch (e) { alert(e.message); } }
+});
+$("runCli").addEventListener("click", async () => {
+  try { $("cliOut").textContent = await api("/admin/asterisk/" + $("what").value); } catch (e) { $("cliOut").textContent = e.message; }
+});
+
+loadHealth();
+setToken(token);
+</script>
+</body>
+</html>

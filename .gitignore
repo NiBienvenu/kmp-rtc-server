@@ -1,0 +1,6 @@
+.env
+config/certs/*.pem
+certbot-www/
+ktor-server/build/
+ktor-server/.gradle/
+ktor-server/.kotlin/

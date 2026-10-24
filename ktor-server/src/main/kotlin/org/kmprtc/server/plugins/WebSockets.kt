@@ -1,0 +1,15 @@
+package org.kmprtc.server.plugins
+
+import io.ktor.server.application.*
+import io.ktor.server.websocket.*
+import kotlin.time.Duration.Companion.seconds
+
+fun Application.configureWebSockets() {
+    install(WebSockets) {
+        pingPeriod = 20.seconds
+        timeout = 20.seconds
+        maxFrameSize = Long.MAX_VALUE
+        masking = false
+    }
+}
+

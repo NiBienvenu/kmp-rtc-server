@@ -1,0 +1,10 @@
+# Contexte de build minimal pour kmp-rtc-server
+**/build/
+**/.gradle/
+**/.kotlin/
+.idea
+*.iml
+config
+.env
+.env.*
+!.env.example
