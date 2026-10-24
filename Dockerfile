@@ -8,7 +8,7 @@
 #
 # Etapes:
 #   1. ktor-build : compile l'API (ktor-server/) + JRE minimal (jlink)
-#   2. docs-build : convertit docs/*.md en HTML (servi par Nginx sur /docs/)
+#   2. docs-build : site React (docs-site/) qui affiche docs/*.md (servi par Nginx sur /docs/)
 #   3. runtime    : Ubuntu 24.04 + paquets systeme, sans outils de build
 # =============================================================================
 
@@ -34,16 +34,13 @@ RUN set -eux; \
     /opt/jre/bin/java -version
 
 # ----------------------------------------------------------------------------- 2. Docs
-FROM pandoc/core:3.6 AS docs-build
-WORKDIR /docs
-COPY docs/ ./
-RUN set -eux; mkdir -p /out; cp assets/* /out/; \
-    for f in *.md; do \
-      title="$(sed -n 's/^# //p' "$f" | head -n1)"; \
-      pandoc "$f" --standalone --toc --toc-depth=2 --template=assets/template.html \
-        --metadata title="$title" --highlight-style=pygments -o "/out/${f%.md}.html"; \
-    done; \
-    sed -i 's/\.md"/.html"/g; s/\.md#/.html#/g' /out/*.html
+FROM node:22-alpine AS docs-build
+WORKDIR /src
+COPY docs-site/package.json docs-site/package-lock.json docs-site/
+RUN cd docs-site && npm ci --no-audit --no-fund
+COPY docs/ docs/
+COPY docs-site/ docs-site/
+RUN cd docs-site && npm run build && mkdir -p /out && cp -r dist/. /out/
 
 # ----------------------------------------------------------------------------- 3. Runtime
 FROM ubuntu:${UBUNTU_VERSION}

@@ -51,7 +51,8 @@ Conséquences :
 KMP RTC SERVER/
 ├── kmp-rtc-server/               # CE PROJET: l'image Docker
 │   (voir le detail ci-dessous)
-└── Omb-Connect_app/              # application KMP de test (client)
+├── kmp-rtc-sample/               # application exemple KMP (Material 3) : comptes, appels, conferences
+└── Omb-Connect_app/              # ancienne application de test
     ├── composeApp/               # Android, iOS, Desktop
     └── ...
 

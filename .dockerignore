@@ -8,3 +8,5 @@ config
 .env
 .env.*
 !.env.example
+docs-site/node_modules
+docs-site/dist
