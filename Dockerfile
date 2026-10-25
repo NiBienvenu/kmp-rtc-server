@@ -34,7 +34,9 @@ RUN set -eux; \
     /opt/jre/bin/java -version
 
 # ----------------------------------------------------------------------------- 2. Docs
-FROM node:22-alpine AS docs-build
+# Site statique (HTML/JS) identique pour toutes les architectures: on le construit
+# sur la plateforme native du runner, sans emulation QEMU (npm y est tres lent)
+FROM --platform=$BUILDPLATFORM node:22-alpine AS docs-build
 WORKDIR /src
 COPY docs-site/package.json docs-site/package-lock.json docs-site/
 RUN cd docs-site && npm ci --no-audit --no-fund
