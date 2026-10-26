@@ -106,9 +106,9 @@ RUN set -eux; \
 #   5060 udp/tcp    SIP
 #   5061 tcp        SIP/TLS (si SIP_TLS_ENABLED=true)
 #   3478 udp/tcp    STUN/TURN (coturn)
-#   10000-20000 udp RTP/SRTP (audio/video)
+#   10000-10099 udp RTP/SRTP (audio/video), agrandie par blocs de 100 si RTP_AUTOSCALE=true
 #   49160-49200 udp relais TURN
-EXPOSE 80/tcp 443/tcp 5060/udp 5060/tcp 5061/tcp 3478/udp 3478/tcp 10000-20000/udp 49160-49200/udp
+EXPOSE 80/tcp 443/tcp 5060/udp 5060/tcp 5061/tcp 3478/udp 3478/tcp 10000-10099/udp 49160-49200/udp
 
 # Donnees persistantes (les volumes nommes du docker-compose.yml les remplacent)
 VOLUME ["/var/lib/mysql", "/var/lib/kmp-rtc", "/var/spool/kmp-rtc/recordings"]

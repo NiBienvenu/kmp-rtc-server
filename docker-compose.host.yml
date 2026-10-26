@@ -1,6 +1,8 @@
 # Surcharge pour Linux: reseau "host" (recommande en production pour la VoIP)
 #  - pas de NAT Docker sur les flux RTP (moins de latence, pas de one-way audio)
-#  - pas besoin de publier 10 000 ports UDP (demarrage plus rapide)
+#  - aucun port publie par Docker (pas de regles iptables, demarrage/arret instantanes)
+#  - plage RTP elastique: RTP_START-RTP_END au depart, +RTP_STEP ports quand elle
+#    est presque pleine, jusqu'a RTP_MAX_END (pare-feu: ouvrir RTP_START-RTP_MAX_END)
 #
 #   docker compose -f docker-compose.yml -f docker-compose.host.yml up -d
 #
@@ -9,3 +11,5 @@ services:
   kmp-rtc-server:
     network_mode: host
     ports: !reset []
+    environment:
+      RTP_AUTOSCALE: "true"

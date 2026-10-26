@@ -49,7 +49,10 @@ Certificat : placez `fullchain.pem` et `privkey.pem` dans `config/certs/`. Sans 
 | `SIP_TRANSPORT` | `udp` | Transport annoncé aux applis : `udp`, `tcp` ou `tls`. |
 | `SIP_TLS_ENABLED` | `false` | Active SIP/TLS sur `SIP_TLS_PORT` (utilise le même certificat que Nginx). |
 | `SIP_TLS_PORT` | `5061` | Port SIP/TLS. |
-| `RTP_START` / `RTP_END` | `10000` / `20000` | Plage RTP. Doit être la même dans Docker et le pare-feu. |
+| `RTP_START` / `RTP_END` | `10000` / `10099` | Plage RTP de départ (100 ports). Doit être la même dans Docker et le pare-feu. |
+| `RTP_AUTOSCALE` | `false` | `true` (mode `host` uniquement) : ajoute `RTP_STEP` ports quand `RTP_SCALE_UP_PCT` % sont occupés, retire le dernier bloc quand il est vide. Sans coupure d'appel. |
+| `RTP_STEP` / `RTP_MAX_END` | `100` / `20000` | Taille d'un bloc et fin maximale de la plage. Ouvrir `RTP_START`-`RTP_MAX_END` dans le pare-feu. |
+| `RTP_SCALE_UP_PCT` / `RTP_SCALE_DOWN_PCT` / `RTP_CHECK_INTERVAL` | `80` / `30` / `5` | Seuils (%) et fréquence de vérification (secondes). |
 | `MEDIA_ENCRYPTION` | `sdes` | `sdes` = SRTP si le client le propose, sinon RTP. `no` = jamais. |
 | `CODECS_AUDIO` | `opus,g722,ulaw,alaw` | Ordre de préférence audio. |
 | `CODECS_VIDEO` | `h264,vp8` | Ordre de préférence vidéo. |

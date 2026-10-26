@@ -2,6 +2,8 @@
 
 Ajoutez les appels audio, les appels vidéo et les conférences à votre application Kotlin Multiplatform. Cette page s'appuie sur **kmp-rtc-sample**, une petite application exemple en Material Design 3 que vous pouvez lancer tout de suite, puis copier dans votre projet.
 
+> **Code source de l'exemple** : [github.com/NiBienvenu/kmp-rtc-sample](https://github.com/NiBienvenu/kmp-rtc-sample)
+
 :::: cards
 ::: card
 **Comptes**
@@ -45,6 +47,8 @@ curl http://localhost/health/ready
 git clone https://github.com/NiBienvenu/kmp-rtc-sample.git
 cd kmp-rtc-sample
 ```
+
+Le dépôt est sur GitHub : [NiBienvenu/kmp-rtc-sample](https://github.com/NiBienvenu/kmp-rtc-sample).
 
 ### Indiquez l'adresse du serveur
 
@@ -264,7 +268,7 @@ App                         kmp-rtc-server
  |-- REGISTER sip:<domaine> -> Asterisk (5060)
  |-- GET /sip/peer/{userId} -> Ktor : numero SIP du contact
  |-- INVITE sip:<numero>@<domaine> -> Asterisk -> Dial(PJSIP/<numero>)
- |<========== RTP/SRTP 10000-20000 (via Asterisk) ==========>
+ |<========== RTP/SRTP 10000-10099+ (via Asterisk) =========>
  |-- BYE ---------------------> Asterisk -> CDR dans MariaDB
  |-- GET /calls/history -----> Ktor lit le CDR
 ```
@@ -370,7 +374,7 @@ Détails : [Enregistrements](11-enregistrements.md).
 
 - [ ] `SERVER_HOST` pointe sur Nginx (port 80 ou 443, pas 8080).
 - [ ] `EXTERNAL_IP` dans `.env` = l'IP que le téléphone utilise pour joindre le serveur.
-- [ ] Ports `5060/udp` et `10000-20000/udp` ouverts.
+- [ ] Ports `5060/udp` et `10000-10099/udp` ouverts (`10000-20000/udp` avec `docker-compose.host.yml`, la plage grandit par blocs de 100).
 - [ ] La pastille de l'application affiche **En ligne**.
 - [ ] `docker exec kmp-rtc-server asterisk -rx "pjsip show contacts"` liste le téléphone.
 - [ ] Appel au `600` : vous vous entendez.

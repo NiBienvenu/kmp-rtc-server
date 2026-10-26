@@ -87,7 +87,7 @@ Dans le pare-feu du serveur **et** dans celui de votre hébergeur :
 |---|---|---|
 | 80, 443 | TCP | API, documentation, administration |
 | 5060 | UDP + TCP | SIP |
-| 10000-20000 | UDP | Audio et vidéo (RTP) |
+| 10000-10099 (jusqu'à 20000 en mode host) | UDP | Audio et vidéo (RTP), par blocs de 100 |
 | 3478 | UDP + TCP | STUN / TURN |
 | 49160-49200 | UDP | Relais TURN |
 

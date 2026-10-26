@@ -64,7 +64,10 @@ export SIP_TLS_ENABLED="$(bool "${SIP_TLS_ENABLED:-false}")"
 export SIP_TLS_PORT="${SIP_TLS_PORT:-5061}"
 export SIP_TRANSPORT="${SIP_TRANSPORT:-udp}"
 export RTP_START="${RTP_START:-10000}"
-export RTP_END="${RTP_END:-20000}"
+export RTP_END="${RTP_END:-10099}"
+export RTP_AUTOSCALE="$(bool "${RTP_AUTOSCALE:-false}")"
+export RTP_STEP="${RTP_STEP:-100}"
+export RTP_MAX_END="${RTP_MAX_END:-20000}"
 export ASTERISK_HTTP_PORT="${ASTERISK_HTTP_PORT:-8088}"
 export ASTERISK_VERBOSE="${ASTERISK_VERBOSE:-3}"
 export ASTERISK_MAXLOAD="${ASTERISK_MAXLOAD:-0}"
@@ -105,6 +108,8 @@ done
 [[ "$RECORDING_FORMAT" =~ ^(wav|wav49|gsm|ogg)$ ]] || die "RECORDING_FORMAT must be wav, wav49, gsm or ogg"
 [[ "$SIP_TRANSPORT" =~ ^(udp|tcp|tls)$ ]] || die "SIP_TRANSPORT must be udp, tcp or tls"
 [ "$RTP_START" -lt "$RTP_END" ] || die "RTP_START must be lower than RTP_END"
+[ "$RTP_END" -le "$RTP_MAX_END" ] || die "RTP_END must be lower or equal to RTP_MAX_END"
+[ "$RTP_STEP" -ge 2 ] || die "RTP_STEP must be at least 2"
 if [ "$SIP_TRANSPORT" = tls ] && [ "$SIP_TLS_ENABLED" != true ]; then
   die "SIP_TRANSPORT=tls needs SIP_TLS_ENABLED=true"
 fi
@@ -378,5 +383,5 @@ fi
 # Le fichier contenant les secrets n'est pas utile aux autres services
 unset DB_PASSWORD CDR_DB_PASSWORD JWT_SECRET TURN_SECRET WEBHOOK_SECRET ADMIN_PASSWORD
 
-log "starting services: public=$PUBLIC_HOSTNAME sip=$SIP_DOMAIN:$SIP_PORT/$SIP_TRANSPORT rtp=$RTP_START-$RTP_END turn=$TURN_ENABLED record_calls=$RECORD_CALLS record_conferences=$RECORD_CONFERENCES"
+log "starting services: public=$PUBLIC_HOSTNAME sip=$SIP_DOMAIN:$SIP_PORT/$SIP_TRANSPORT rtp=$RTP_START-$RTP_END autoscale=$RTP_AUTOSCALE turn=$TURN_ENABLED record_calls=$RECORD_CALLS record_conferences=$RECORD_CONFERENCES"
 exec "$@"

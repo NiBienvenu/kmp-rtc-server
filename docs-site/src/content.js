@@ -1,7 +1,6 @@
 // Les pages viennent de ../docs/*.md, lues au moment du build (rien a charger en ligne).
 const files = import.meta.glob("../../docs/*.md", { query: "?raw", import: "default", eager: true });
 
-export const GITHUB_SAMPLE = "https://github.com/NiBienvenu/kmp-rtc-sample";
 export const VERSION = "v1.0";
 
 // Ordre et groupes du sommaire. "badge" : petite etiquette a cote du titre.

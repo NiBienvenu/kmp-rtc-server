@@ -33,8 +33,10 @@ services:
       # STUN / TURN
       - "${TURN_PORT:-3478}:${TURN_PORT:-3478}/udp"
       - "${TURN_PORT:-3478}:${TURN_PORT:-3478}/tcp"
-      # RTP / SRTP (meme plage des deux cotes: obligatoire)
-      - "${RTP_START:-10000}-${RTP_END:-20000}:${RTP_START:-10000}-${RTP_END:-20000}/udp"
+      # RTP / SRTP (meme plage des deux cotes: obligatoire). 100 ports seulement:
+      # chaque port publie = une regle iptables, 10 000 ports bloquent dockerd au demarrage/arret.
+      # Pour une plage qui grandit toute seule: docker-compose.host.yml (RTP_AUTOSCALE).
+      - "${RTP_START:-10000}-${RTP_END:-10099}:${RTP_START:-10000}-${RTP_END:-10099}/udp"
       # Relais TURN
       - "${TURN_MIN_PORT:-49160}-${TURN_MAX_PORT:-49200}:${TURN_MIN_PORT:-49160}-${TURN_MAX_PORT:-49200}/udp"
     volumes:

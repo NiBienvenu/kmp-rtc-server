@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Markdown from "./Markdown.jsx";
-import { GITHUB_SAMPLE, NAV, PAGES, SEARCH_INDEX, VERSION, headings, source } from "./content.js";
+import { NAV, PAGES, SEARCH_INDEX, VERSION, headings, source } from "./content.js";
 
 // ─── Routage par hash : #/page ou #/page/section (marche sous /docs/ sans regle Nginx) ──
 function readRoute() {
@@ -136,7 +136,6 @@ function Header({ slug, theme, toggleTheme, onMenu }) {
         {links.map(([s, label]) => <a key={s} href={`#/${s}`} className={slug === s ? "on" : ""}>{label}</a>)}
         <a href="/admin/">Admin</a>
       </nav>
-      <a className="icon-btn" href={GITHUB_SAMPLE} target="_blank" rel="noreferrer" aria-label="Application exemple sur GitHub"><Icon name="github" /></a>
       <button className="icon-btn" onClick={toggleTheme} aria-label="Changer de thème"><Icon name={theme === "dark" ? "moon" : "sun"} /></button>
     </header>
   );
