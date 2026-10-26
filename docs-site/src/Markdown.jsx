@@ -4,6 +4,10 @@ import remarkGfm from "remark-gfm";
 import { Highlight } from "prism-react-renderer";
 import { slugify } from "./content.js";
 
+// Images des pages (docs/images/*.png) : copiees par Vite au build, "images/x.png" -> URL finale
+const images = import.meta.glob("../../docs/images/*", { query: "?url", import: "default", eager: true });
+const imageUrl = (src = "") => images[`../../docs/${src.replace(/^\.\//, "")}`] ?? src;
+
 // Couleurs du code : des variables CSS, donc le theme clair/sombre change tout seul.
 const codeTheme = {
   plain: { color: "var(--code-fg)", backgroundColor: "transparent" },
@@ -84,6 +88,7 @@ const makeComponents = (slug) => ({
     if (!lang && !code.includes("\n")) return <code className="inline">{children}</code>;
     return <CodeBlock lang={lang} code={code.replace(/\n$/, "")} />;
   },
+  img: ({ src, alt }) => <img src={imageUrl(src)} alt={alt} loading="lazy" />,
   table: ({ children }) => <div className="table-wrap"><table>{children}</table></div>,
 });
 

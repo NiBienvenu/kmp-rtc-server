@@ -186,6 +186,7 @@ blockquote > :last-child { margin-bottom: 0; }
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 26px 0; }
 .cards > div { border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; background: var(--bg-soft); }
 .cards p:first-child { margin-top: 0; }
+.cards img { display: block; width: 100%; max-width: 240px; height: auto; margin: 0 auto 12px; }
 .cards p:last-child { margin-bottom: 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
 
 /* Precedent / suivant */

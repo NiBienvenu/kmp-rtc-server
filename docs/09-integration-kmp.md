@@ -81,6 +81,33 @@ Dans **Contacts**, touchez l'icône téléphone (audio) ou caméra (vidéo) à c
 
 Toutes les copies de l'application qui ont le **même `SERVER_HOST`** voient les mêmes utilisateurs et peuvent s'appeler entre elles.
 
+## À quoi ça ressemble
+
+Captures de **kmp-rtc-sample** sur un téléphone Android, reliée à un kmp-rtc-server local. Bob et Carol sont deux autres comptes du même serveur.
+
+:::: cards
+::: card
+![Liste des contacts](images/sample-contacts.png)
+
+**Contacts** : les utilisateurs du serveur, avec un bouton audio et un bouton vidéo pour chacun. Le badge « En ligne » indique que le compte SIP est connecté.
+:::
+::: card
+![Appel audio avec Bob](images/sample-appel-audio.png)
+
+**Appel audio A → B** : Alice appelle Bob. Micro, haut-parleur, clavier (DTMF) et raccrocher.
+:::
+::: card
+![Liste des salles](images/sample-salles.png)
+
+**Salles** : chaque salle a un numéro à 5 chiffres. On la rejoint en audio ou en vidéo.
+:::
+::: card
+![Conférence Test conf](images/sample-conference.png)
+
+**Conférence A + B + C** : Alice rejoint la salle « Test conf », où Bob et Carol sont déjà.
+:::
+::::
+
 ## Comment l'exemple est organisé
 
 ```text
