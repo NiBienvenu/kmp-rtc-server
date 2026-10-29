@@ -14,7 +14,7 @@ docker pull ghcr.io/<organisation>/kmp-rtc-server:latest
 |---|---|---|
 | **Asterisk 20** | Signalisation SIP, médias RTP/SRTP, conférences (ConfBridge), enregistrement audio, codecs Opus, G.711, G.722, H.264, VP8 | 5060 udp/tcp, 5061 tcp, 10000-20000 udp |
 | **Ktor** (API REST) | Comptes, comptes SIP, salles, jetons JWT et TURN, CDR, enregistrements audio/vidéo, webhooks, monitoring | interne 8080 (via Nginx) |
-| **MariaDB 10.11** | CDR, journaux, statistiques, données de l'API | interne 3306 |
+| **MariaDB 10.11** | CDR, journaux, statistiques, données de l'API | interne 3307 (127.0.0.1 seulement, pour ne pas gêner un MySQL déjà installé sur la machine) |
 | **Nginx** | Reverse proxy, TLS, WebSocket, cette documentation, interface admin | 80, 443 |
 | **coturn** | STUN + TURN pour la traversée NAT | 3478 udp/tcp, 49160-49200 udp |
 | **Supervisor** | Lance, surveille et redémarre tous les services | |

@@ -83,7 +83,7 @@ export MARIADB_BIND_ADDRESS="${MARIADB_BIND_ADDRESS:-127.0.0.1}"
 export MARIADB_INNODB_BUFFER_POOL="${MARIADB_INNODB_BUFFER_POOL:-128M}"
 export MARIADB_MAX_CONNECTIONS="${MARIADB_MAX_CONNECTIONS:-150}"
 export DB_HOST="${DB_HOST:-127.0.0.1}"
-export DB_PORT="${DB_PORT:-3306}"
+export DB_PORT="${DB_PORT:-3307}"
 export DB_NAME="${DB_NAME:-kmp_rtc}"
 export DB_USER="${DB_USER:-kmp_app}"
 export CDR_DB_USER="${CDR_DB_USER:-asterisk_cdr}"
@@ -115,7 +115,10 @@ if [ "$SIP_TRANSPORT" = tls ] && [ "$SIP_TLS_ENABLED" != true ]; then
 fi
 
 # ----------------------------------------------------------------- 2. reseau / NAT
-CONTAINER_IP="$(ip -4 -o addr show scope global 2>/dev/null | awk '{split($4,a,"/"); print a[1]; exit}')"
+# IP de la route par defaut (en mode host, la machine a souvent docker0, cni0 (k3s)... en plus du LAN:
+# la "premiere" IP n'est pas forcement celle que les telephones peuvent joindre).
+CONTAINER_IP="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<NF;i++) if($i=="src"){print $(i+1); exit}}')"
+[ -n "$CONTAINER_IP" ] || CONTAINER_IP="$(ip -4 -o addr show scope global 2>/dev/null | awk '{split($4,a,"/"); print a[1]; exit}')"
 CONTAINER_IP="${CONTAINER_IP:-127.0.0.1}"
 export CONTAINER_IP
 

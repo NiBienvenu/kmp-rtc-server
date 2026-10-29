@@ -12,7 +12,7 @@
       v
 +------------------------------------ kmp-rtc-server --------------------------------------+
 |                                                                                          |
-|   Nginx :80/:443 ---------> Ktor :8080 (127.0.0.1) ----JDBC----> MariaDB :3306 (127.0.0.1)|
+|   Nginx :80/:443 ---------> Ktor :8080 (127.0.0.1) ----JDBC----> MariaDB :3307 (127.0.0.1)|
 |     |  /docs /admin           |  ecrit pjsip_users.conf             ^      ^             |
 |     |                         |  asterisk -rx (socket CLI)          |      | ODBC        |
 |     +--/asterisk/ws--> Asterisk :8088 (127.0.0.1)                   |      |             |

@@ -27,6 +27,22 @@ odbc show                    ; connexion MariaDB pour les CDR
 cdr show status
 ```
 
+## Les appels (audio ou vidéo) ne marchent plus du tout sur un PC de test
+
+Cas typique en mode réseau `host` sur un PC de développement :
+
+1. **Un autre service prend le port 80/443.** Test : `curl http://<IP LAN>:<port>/health`.
+   Si la réponse est `404 page not found` (texte brut), c'est Traefik (k3s), pas kmp-rtc.
+   k3s capture 80/443 même si `ss -ltnp` montre Nginx. Solution : `HTTP_PORT=8081` et
+   `HTTPS_PORT=8443` dans `.env`, puis `SERVER_HOST = "<IP LAN>:8081"` dans l'app.
+   Ou arrêtez k3s : `sudo systemctl stop k3s`.
+2. **Un MySQL/MariaDB local occupe 3306.** MariaDB du conteneur écoute sur `127.0.0.1:3307`
+   par défaut (`DB_PORT`) pour éviter ce conflit.
+3. **Le PC a changé de réseau (Wi-Fi, IP).** L'IP est détectée au démarrage du conteneur.
+   Si l'IP change, coturn et Asterisk gardent l'ancienne (`Network is unreachable` dans
+   `messages.log`, STUN/TURN muets). Relancez : `docker compose restart`.
+   Pensez aussi à mettre la nouvelle IP dans `SERVER_HOST` de l'app.
+
 ## Le téléphone ne s'enregistre pas
 
 1. `pjsip set logger on` puis relancer l'app : voyez-vous le `REGISTER` ?
@@ -52,6 +68,8 @@ C'est presque toujours le NAT ou le pare-feu RTP.
 
 - Les deux clients doivent partager un codec vidéo (H.264 ou VP8) : Asterisk ne transcode pas la vidéo.
 - `core show channel <canal>` montre les formats négociés.
+- Vérifiez d'abord que l'audio marche (même chemin réseau, voir plus haut). Si l'audio ne passe pas, la vidéo non plus.
+- Côté app, le log `Codecs video disponibles : []` veut dire que la bibliothèque PJSIP a été construite sans codec vidéo (OpenH264 / VP8).
 - La vidéo demande plus de débit : vérifiez les pertes avec `rtp set debug on` ou `pjsip show channelstats`.
 
 ## Les CDR n'apparaissent pas

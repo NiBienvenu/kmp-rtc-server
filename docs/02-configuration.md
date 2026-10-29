@@ -33,6 +33,7 @@ docker exec kmp-rtc-server cat /var/lib/kmp-rtc/secrets/JWT_SECRET
 | Variable | Défaut | Description |
 |---|---|---|
 | `HTTP_PUBLISH_PORT` / `HTTPS_PUBLISH_PORT` | `80` / `443` | Ports publiés sur l'hôte (Compose). |
+| `HTTP_PORT` / `HTTPS_PORT` | `80` / `443` | Ports d'écoute de Nginx. En mode réseau `host`, ce sont les ports visibles sur la machine : changez-les (ex. `8081` / `8443`) si 80/443 sont déjà pris (k3s/Traefik, Apache...). Ne pas changer en mode bridge. |
 | `HTTP_REDIRECT_HTTPS` | `false` | `true` : le port 80 redirige vers HTTPS (sauf `/.well-known/acme-challenge/`). |
 | `CORS_ALLOWED_HOSTS` | `*` | Hôtes autorisés pour un client Web, ex. `app.example.com`. |
 | `NGINX_AUTH_RATE` | `10r/m` | Limite de requêtes par IP sur `/auth/*`. |
@@ -82,7 +83,7 @@ Certificat : placez `fullchain.pem` et `privkey.pem` dans `config/certs/`. Sans 
 | Variable | Défaut | Description |
 |---|---|---|
 | `MARIADB_ENABLED` | `true` | `false` pour utiliser une base externe (`DB_HOST`). |
-| `DB_HOST` / `DB_PORT` | `127.0.0.1` / `3306` | Adresse de la base. |
+| `DB_HOST` / `DB_PORT` | `127.0.0.1` / `3307` | Adresse de la base. Port 3307 par défaut (et non 3306) pour ne pas entrer en conflit avec un MySQL/MariaDB installé sur la machine hôte en mode réseau `host`. |
 | `DB_NAME` | `kmp_rtc` | Nom de la base. |
 | `DB_USER` / `DB_PASSWORD` | `kmp_app` / généré | Compte de l'API (tous droits sur `DB_NAME`). |
 | `CDR_DB_USER` / `CDR_DB_PASSWORD` | `asterisk_cdr` / généré | Compte Asterisk : `INSERT,SELECT` sur `cdr`, `SELECT` sur `conference_rooms`. |
@@ -145,7 +146,7 @@ docker exec kmp-rtc-server mariadb-dump --single-transaction kmp_rtc | gzip > km
 | 3478 | UDP + TCP | STUN/TURN | Si `TURN_ENABLED=true` |
 | 49160-49200 | UDP | Relais TURN | Si `TURN_ENABLED=true` |
 
-Ports internes (jamais exposés) : 8080 (Ktor), 3306 (MariaDB), 8088 (HTTP Asterisk).
+Ports internes (jamais exposés, sur 127.0.0.1) : 8080 (Ktor), 3307 (MariaDB, changé de 3306 pour ne pas gêner un MySQL installé sur la machine, réglable avec `DB_PORT`), 8088 (HTTP Asterisk).
 
 ## Personnaliser Asterisk sans reconstruire l'image
 
